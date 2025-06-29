@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Matematika Ceria</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .fredoka {
+            font-family: 'Fredoka One', cursive;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+        }
+        .btn-primary {
+            background-color: #8e44ad;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #9b59b6;
+        }
+        .btn-primary:disabled {
+            background-color: #c8a2c8;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background-color: #f39c12;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #f1c40f;
+        }
+        .btn-secondary:disabled {
+            background-color: #f8e0a8;
+            cursor: not-allowed;
+        }
+        .btn-download {
+            background-color: #27ae60;
+            color: white;
+            transition: background-color 0.3s ease;
+        }
+        .btn-download:hover {
+             background-color: #2ecc71;
+        }
+        .hidden {
+            display: none;
+        }
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            margin: 0 5px;
+            color: white;
+            transition: transform 0.2s ease;
+        }
+        .share-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="container" class="w-full max-w-lg mx-auto">
+
+        <!-- Layar Utama -->
+        <div id="home-screen" class="card rounded-2xl p-8 shadow-2xl text-center">
+            <img src="https://disdikbud.banyuasinkab.go.id/wp-content/uploads/sites/269/2022/11/Logo-Tut-Wuri-Handayani-PNG-Warna.png" alt="Logo Tut Wuri Handayani" class="mx-auto mb-4 h-24">
+            <h1 class="text-4xl md:text-5xl fredoka text-gray-800 mb-2">Game Matematika Ceria!</h1>
+            <p class="text-xl text-gray-700 mb-6">SD INPRES MENI LONTONG</p>
+            <p class="text-gray-600 mb-8">Hai 👦👧! Masukkan namamu untuk memulai petualangan matematika!</p>
+            <input type="text" id="player-name-input" placeholder="Ketik nama di sini..." class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg mb-6 focus:outline-none focus:border-purple-500 text-lg">
+            <button id="start-game-btn" class="w-full btn-primary fredoka text-2xl py-3 rounded-lg shadow-lg transform hover:scale-105">Mulai Bermain!</button>
+        </div>
+
+        <!-- Layar Permainan -->
+        <div id="game-screen" class="hidden card rounded-2xl p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <span class="text-gray-600">Pemain 🧑‍🎓:</span>
+                    <span id="player-name-display" class="font-bold text-purple-700 text-lg"></span>
+                </div>
+                <div>
+                    <span class="text-gray-600">Soal:</span>
+                    <span id="question-counter" class="font-bold text-purple-700 text-lg">1/10</span>
+                </div>
+            </div>
+            
+            <div class="bg-purple-100 border-l-4 border-purple-500 p-6 rounded-lg mb-6 min-h-[100px] flex items-center justify-center">
+                <p class="text-center text-3xl md:text-4xl fredoka text-gray-800" id="question-display">Memuat soal...</p>
+            </div>
+
+            <input type="number" id="answer-input" placeholder="Masukkan jawabanmu" class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg mb-6 focus:outline-none focus:border-purple-500 text-lg text-center">
+            
+            <div class="flex justify-between mt-4">
+                <button id="prev-question-btn" class="btn-secondary fredoka text-lg py-2 px-6 rounded-lg shadow-lg transform hover:scale-105">Sebelumnya</button>
+                <button id="next-question-btn" class="btn-primary fredoka text-lg py-2 px-6 rounded-lg shadow-lg transform hover:scale-105">Berikutnya</button>
+            </div>
+        </div>
+
+        <!-- Layar Selesai -->
+        <div id="end-screen" class="hidden card rounded-2xl p-8 shadow-2xl text-center">
+            <h2 class="text-3xl fredoka text-gray-800 mb-2">Permainan Selesai!</h2>
+            <p class="text-gray-600 mb-6">Kerja bagus, <span id="final-player-name" class="font-bold text-purple-700"></span>! 👍</p>
+            <p class="text-2xl text-gray-700 mb-2">Skor Akhirmu:</p>
+            <p id="final-score-display" class="text-6xl fredoka text-purple-800 mb-2">0</p>
+            <p class="text-xl text-gray-700 mb-6">Durasi Pengerjaan: <span id="final-duration-display" class="font-bold text-purple-700"></span></p>
+
+
+            <div class="mb-6">
+                <p class="text-gray-600 mb-4">Bagikan skormu:</p>
+                <div class="flex justify-center">
+                    <a id="share-facebook" href="#" target="_blank" class="share-btn bg-blue-600" title="Facebook">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v2.385z"/></svg>
+                    </a>
+                    <a id="share-whatsapp" href="#" target="_blank" class="share-btn bg-green-500" title="WhatsApp">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99 0-3.902-.539-5.587-1.52l-6.19 1.669zm4.779-6.471l.297-.179c1.473-.896 3.16-1.39 4.908-1.39h.001c5.448 0 9.897-4.448 9.897-9.896 0-5.449-4.448-9.897-9.897-9.897-5.449 0-9.896 4.448-9.896 9.897 0 2.098.647 4.09 1.857 5.753l-.181.302-1.127 4.105 4.122-1.11z"/></svg>
+                    </a>
+                    <a id="share-twitter" href="#" target="_blank" class="share-btn bg-blue-400" title="Twitter">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616v.064c0 2.295 1.614 4.212 3.766 4.646-.66.18-1.36.216-2.06.077 1.055 2.22 3.35 3.034 5.485 2.65-1.74 1.54-4.1 2.2-6.6 2.04 1.82 1.34 4.08 2.02 6.5 1.94 7.55 0 11.68-6.11 11.2-11.44.8-.58 1.5-1.32 2.04-2.14z"/></svg>
+                    </a>
+                    <a id="share-telegram" href="#" target="_blank" class="share-btn bg-blue-500" title="Telegram">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9.78 18.65l.288-4.234L19.242 6c.15-.144.02-.49-.18-.41L2.92 11.27c-.29.117-.28.57.03.65l4.35 1.015 9.58-5.98c.39-.24.72-.12.44.18L7.05 16.24l-2.4 7.2c-.22.66.47 1.07.96.72l3.17-2.51z"/></svg>
+                    </a>
+                    <a id="share-email" href="#" class="share-btn bg-gray-600" title="Email">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg>
+                    </a>
+                </div>
+            </div>
+            
+            <button id="download-btn" class="w-full btn-download fredoka text-xl py-3 rounded-lg shadow-lg transform hover:scale-105 mb-4">Unduh Hasil (PDF)</button>
+            <button id="play-again-btn" class="w-full btn-primary fredoka text-xl py-3 rounded-lg shadow-lg transform hover:scale-105 mb-4">Main Lagi</button>
+            <button id="home-btn-end" class="w-full btn-secondary fredoka text-xl py-3 rounded-lg shadow-lg transform hover:scale-105">Kembali ke Beranda</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Deklarasi jsPDF
+        const { jsPDF } = window.jspdf;
+
+        // Elemen UI
+        const homeScreen = document.getElementById('home-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const playerNameInput = document.getElementById('player-name-input');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const playerNameDisplay = document.getElementById('player-name-display');
+        const questionCounter = document.getElementById('question-counter');
+        const questionDisplay = document.getElementById('question-display');
+        const answerInput = document.getElementById('answer-input');
+        const prevQuestionBtn = document.getElementById('prev-question-btn');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        const finalPlayerName = document.getElementById('final-player-name');
+        const finalScoreDisplay = document.getElementById('final-score-display');
+        const finalDurationDisplay = document.getElementById('final-duration-display');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const homeBtnEnd = document.getElementById('home-btn-end');
+        
+        // Elemen Share
+        const shareFacebook = document.getElementById('share-facebook');
+        const shareWhatsapp = document.getElementById('share-whatsapp');
+        const shareTwitter = document.getElementById('share-twitter');
+        const shareTelegram = document.getElementById('share-telegram');
+        const shareEmail = document.getElementById('share-email');
+
+        // State Permainan
+        let playerName = '';
+        let score = 0;
+        let questions = [];
+        let userAnswers = [];
+        let currentQuestionIndex = 0;
+        let startTime;
+        let gameDurationText = '';
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTH8BChL2-58WaBmy780DzW_QWLq3fGFAEKP_YlDpGIH_mhyCUyqJiSraYAMzUpzYEIeYlupWntgXXD/pub?gid=0&single=true&output=csv';
+
+        async function fetchQuestions() {
+            questionDisplay.textContent = 'Memuat soal...';
+            try {
+                const response = await fetch(CSV_URL);
+                const csvText = await response.text();
+                const rows = csvText.split(/\r?\n/).slice(1);
+                questions = rows.map(row => {
+                    const columns = row.split(',');
+                    if (columns.length >= 2 && columns[0] && columns[1]) {
+                        return {
+                            question: columns[0].trim().replace(/"/g, ''),
+                            answer: parseInt(columns[1].trim().replace(/"/g, ''))
+                        };
+                    }
+                    return null;
+                }).filter(q => q !== null && !isNaN(q.answer));
+                if (questions.length === 0) {
+                    questionDisplay.textContent = 'Gagal memuat soal. Coba lagi nanti.';
+                } else {
+                    questions.sort(() => Math.random() - 0.5);
+                }
+            } catch (error) {
+                console.error('Error fetching questions:', error);
+                questionDisplay.textContent = 'Gagal memuat soal. Periksa koneksi internetmu.';
+            }
+        }
+
+        function startGame() {
+            playerName = playerNameInput.value.trim();
+            if (playerName === '') {
+                alert('Tolong masukkan namamu!');
+                return;
+            }
+            if (questions.length === 0) {
+                alert('Soal belum siap, mohon tunggu sebentar.');
+                return;
+            }
+            startTime = new Date(); // Catat waktu mulai
+            score = 0;
+            currentQuestionIndex = 0;
+            userAnswers = new Array(questions.length).fill(null);
+            playerNameDisplay.textContent = playerName;
+            homeScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            displayQuestion(currentQuestionIndex);
+        }
+
+        function displayQuestion(index) {
+            if (index < 0 || index >= questions.length) return;
+
+            const currentQuestion = questions[index];
+            questionDisplay.textContent = currentQuestion.question + ' = ?';
+            questionCounter.textContent = `${index + 1}/${questions.length}`;
+            answerInput.value = userAnswers[index] || '';
+            answerInput.focus();
+
+            // Atur status tombol
+            prevQuestionBtn.disabled = index === 0;
+            if (index === questions.length - 1) {
+                nextQuestionBtn.textContent = 'Selesai';
+            } else {
+                nextQuestionBtn.textContent = 'Berikutnya';
+            }
+        }
+        
+        function saveAnswer() {
+             const value = answerInput.value;
+             if (value.trim() !== '') {
+                 userAnswers[currentQuestionIndex] = parseInt(value);
+             } else {
+                 userAnswers[currentQuestionIndex] = null;
+             }
+        }
+        
+        function handleNextClick() {
+            saveAnswer();
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion(currentQuestionIndex);
+            } else {
+                // Tombol "Selesai" ditekan
+                calculateScoreAndEndGame();
+            }
+        }
+        
+        function handlePrevClick() {
+            saveAnswer();
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion(currentQuestionIndex);
+            }
+        }
+
+        function calculateScoreAndEndGame() {
+            const endTime = new Date();
+            const durationInSeconds = Math.round((endTime - startTime) / 1000);
+            const minutes = Math.floor(durationInSeconds / 60);
+            const seconds = durationInSeconds % 60;
+            gameDurationText = `${minutes} menit ${seconds} detik`;
+            
+            score = 0;
+            for (let i = 0; i < questions.length; i++) {
+                if(userAnswers[i] === questions[i].answer) {
+                    score += 10;
+                }
+            }
+            endGame(score);
+        }
+
+        async function saveScoreToSheet(name, finalScore, duration) {
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxMRlCtpg6-MwpR6pTqYJ2auXv7kLLm13rVIb_FkyIDEyyIEvFqDSmOqHKloOE8NLzNwA/exec';
+            const formData = new FormData();
+            formData.append('Nama', name);
+            formData.append('Skor', finalScore);
+            formData.append('Durasi', duration); // Menambahkan durasi
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' // Diperlukan untuk beberapa tipe request ke Apps Script
+                });
+                console.log('Skor berhasil disimpan.');
+            } catch (error) {
+                console.error('Gagal menyimpan skor:', error);
+            }
+        }
+
+        function endGame(finalScore) {
+            finalPlayerName.textContent = playerName;
+            finalScoreDisplay.textContent = finalScore;
+            finalDurationDisplay.textContent = gameDurationText;
+            
+            // Simpan skor ke Google Sheet
+            saveScoreToSheet(playerName, finalScore, gameDurationText);
+
+            gameScreen.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            setupShareLinks(finalScore);
+        }
+        
+        function downloadResults() {
+            const doc = new jsPDF();
+            doc.setFontSize(22);
+            doc.text("Hasil Game Matematika", 105, 20, null, null, "center");
+            doc.setFontSize(16);
+            doc.text("SD INPRES MENI LONTONG", 105, 30, null, null, "center");
+            doc.setFontSize(12);
+            doc.text(`Nama Siswa: ${playerName}`, 20, 50);
+            doc.text(`Skor Akhir: ${score}`, 20, 60);
+            doc.text(`Durasi Pengerjaan: ${gameDurationText}`, 20, 70);
+            doc.save(`hasil_${playerName.replace(/\s/g, '_')}.pdf`);
+        }
+
+        function setupShareLinks(currentScore) {
+            const shareText = `Saya baru saja mendapatkan skor ${currentScore} di Game Matematika Ceria untuk SD INPRES MENI LONTONG! Yuk, coba juga!`;
+            const encodedText = encodeURIComponent(shareText);
+            const pageUrl = encodeURIComponent(window.location.href);
+            shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}&quote=${encodedText}`;
+            shareWhatsapp.href = `https://api.whatsapp.com/send?text=${encodedText}`;
+            shareTwitter.href = `https://twitter.com/intent/tweet?text=${encodedText}`;
+            shareTelegram.href = `https://t.me/share/url?url=${pageUrl}&text=${encodedText}`;
+            shareEmail.href = `mailto:?subject=Coba Game Matematika Ceria!&body=${encodedText}`;
+        }
+        
+        function goHome() {
+            endScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            homeScreen.classList.remove('hidden');
+            playerNameInput.value = '';
+        }
+
+        // Event Listeners
+        startGameBtn.addEventListener('click', startGame);
+        prevQuestionBtn.addEventListener('click', handlePrevClick);
+        nextQuestionBtn.addEventListener('click', handleNextClick);
+        downloadBtn.addEventListener('click', downloadResults);
+        playAgainBtn.addEventListener('click', startGame);
+        homeBtnEnd.addEventListener('click', goHome);
+        
+        // Inisialisasi: Ambil soal saat halaman dimuat
+        fetchQuestions();
+    </script>
+</body>
+</html>
